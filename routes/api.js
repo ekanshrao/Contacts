@@ -1,125 +1,40 @@
 //jshint esversion:6
-
 const express = require("express");
+const tasks = require("../index.js");
 const router = express.Router();
-const mongoose = require("mongoose");
-
-mongoose.connect("mongodb://localhost:27017/contactDB", {
-    useNewUrlParser:true,
-    useUnifiedTopology: true
-});
-
-const contactSchema = {
-    name: String,
-    phone: String
-};
-
-const Contact = mongoose.model("Contact", contactSchema);
-
-
 
 //get a list of all contacts from the db
 router
 .route("/contacts")
-.get(function(req, res){
-    Contact.find(function(err, foundContacts){
-        if(!err){
-            res.send(foundContacts);
-        } else {
-            res.send(err);
-        }
-    });
-});
+.get(tasks.getAll);
 
 //add contacts to db
 router
 .route("/addcontacts")
-.post(function(req, res){
-    const newContact = new Contact({
-        name: req.body.name,
-        phone: req.body.phone
-    });
-    
-    newContact.save(function(err){
-        if(!err){
-            res.send("Successfully added a new Contact.");
-        }else {
-            res.send(err);
-        }
-    });
-});
+.post(tasks.addContact);
 
 //delete all contacts from the db
 router
 .route("/deletecontacts")
-.delete(function(req, res){
-    Contact.deleteMany(function(err){
-        if(!err){
-            res.send("Successfuly deleted all Contacts");
-        }else{
-            res.send(err);
-        }
-    });
-});
+.delete(tasks.deleteAll);
 
 //get a specific contact from the db
 router
 .route("/contacts/:contactName")
-.get(function(req, res){
-    Contact.findOne({name: req.params.contactName}, function(err, foundContact){
-    if (foundContact) {
-        res.send(foundContact);
-    } else {
-        res.send("No contacts matching that name were found.");
-    }
-    });
-});
+.get(tasks.getSpecificContact);
 
 //update a specific contact in the db
 router
 .route("/updatecontacts/:contactName")
-.put(function(req, res){    
-    Contact.updateOne(
-        {name: req.params.contactName},
-        {name: req.body.name, phone: req.body.phone},
-        function(err){
-            if(!err){
-                res.send("Successfully updated the selected contact.");
-            }else {
-                res.send(err);
-            }
-        });
-})
+.put(tasks.updateContactOnPut);
 
-.patch(function(req, res){
-
-    Contact.updateOne(
-        {name: req.params.contactName},
-        {$set: req.body},
-        function(err){
-        if(!err){
-            res.send("Successfully updated Contact.");
-        } else {
-            res.send(err);
-        }
-        }
-    );
-});
+router
+.route("/updatecontacts/:contactName")
+.patch(tasks.updateContactOnPatch);
 
 //delete a specific contact from the db
 router
 .route("/deletecontacts/:contactName")
-.delete(function(req, res){
-    Contact.deleteOne(
-        {name: req.params.contactName},
-        function(err){
-            if(!err){
-                res.send("Successfully deleted Contact.");
-            }else{
-                res.send(err);
-            }
-        }
-    );
-});
+.delete(tasks.deleteSpecifcContact);
 
 module.exports = router;
